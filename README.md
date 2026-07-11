@@ -27,7 +27,7 @@ altair slc calling r multiple times and saving and restoring the r workspace sql
                 individual variables
                  r dataframes and lists for later use, like a pemanent sas work library
        3 load workspace and solve
-       4 updated utl_submit_r64x macro on end of this message and
+       4 updated utl_submit_r64x macro at
          https://github.com/rogerjdeangelis/utl-macros-used-in-many-of-rogerjdeangelis-repositories
 
     Related repos
@@ -409,75 +409,7 @@ altair slc calling r multiple times and saving and restoring the r workspace sql
     /* 1     1  20220104  20220105   18                                  |                                                    */
     /* 2     2  20220103  20220104   19                                  |                                                    */
     /**************************************************************************************************************************/
-
-    /*  _               _               _ _
-    | || |    ___ _   _| |__  _ __ ___ (_) |_   _ __ ___   __ _  ___ _ __ ___
-    | || |_  / __| | | | `_ \| `_ ` _ \| | __| | `_ ` _ \ / _` |/ __| `__/ _ \
-    |__   _| \__ \ |_| | |_) | | | | | | | |_  | | | | | | (_| | (__| | | (_) |
-       |_|   |___/\__,_|_.__/|_| |_| |_|_|\__| |_| |_| |_|\__,_|\___|_|  \___/
-
-    */
-
-    data _null_;
-      file "c:/wpsoto/slc_submit_r64x.sas";
-      input;
-      put _infile_;
-    cards4;
-    %macro slc_submit_r64x(
-          pgmx
-         ,return=N
-         ,resolve=N
-         )/des="Semi colon separated set of R commands - drop down to R";
-      /*--- THIS DROP DOWN SUPPORTS THREE QUOTES, SINGLE QUOTE, DOUBLE QUOTE AND BACTIC      ---*/
-      /*--- YOU CAN RESOLVE DOUBLE QUOTED MACRO VARIABLES INSIDE SINGLE QUOTES USING BACTIC  ---*/
-      /*--- THE MACRO VARIABLE INSIDE THE R PROGRAM, AREA<-'&RADIUS', CAN BE RESOLVED        ---*/
-      /*--- THE NOTEPAD CLIPBOARD IS USE TO PASS MACRO CREATE DBY R BACK TO THE DATASTEP     ---*/
-      %utlfkil(c:/temp/r_pgm.txt);
-      * clear clipboard;
-      filename _clp clipbrd;
-      data _null_;
-        file _clp;
-        put " ";
-      run;quit;
-      * WRITE THE PROGRAM TO A TEMPORARY FILE AND LOG;
-      filename r_pgm "c:/temp/r_pgm.txt" lrecl=32766 recfm=v;
-      data _null_;
-        length pgm $32756 ;
-        file r_pgm;
-        if substr(upcase("&resolve"),1,1)="Y" then do;
-            pgm=resolve(&pgmx);
-         end;
-        else do;
-            pgm=&pgmx;
-        end;
-        if index(pgm,"`") then pgm=resolve(tranwrd(pgm,"`","27"x));
-        put pgm;
-        putlog pgm;
-      run;
-      * PIPE FILE THROUGH R;
-      filename rut pipe "C:\Progra~1\R\R-4.5.2\bin\r.exe --vanilla --quiet --no-save < c:/temp/r_pgm.txt";
-      data _null_;
-        file print;
-        infile rut recfm=v lrecl=32756;
-        input;
-        put _infile_;
-      run;
-      filename rut clear;
-      filename r_pgm clear;
-      * USE THE CLIPBOARD TO CREATE MACRO VARIABLE;
-      %if %upcase(%substr(&return.,1,1)) ne N %then %do;
-        filename clp clipbrd ;
-        data _null_;
-         infile clp;
-         input;
-         putlog "macro variable &return = " _infile_;
-         call symputx("&return.",_infile_,"G");
-        run;quit;
-      %end;
-    %mend slc_submit_r64x;
-    ;;;;
-    run;
-
+ 
     /*              _
       ___ _ __   __| |
      / _ \ `_ \ / _` |
