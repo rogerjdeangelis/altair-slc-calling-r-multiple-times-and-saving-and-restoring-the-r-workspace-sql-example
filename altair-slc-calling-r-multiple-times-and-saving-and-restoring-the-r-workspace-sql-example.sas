@@ -41,7 +41,6 @@ https://github.com/rogerjdeangelis/utl-merging-inner-join-dataframes-based-on-si
             |_|
 */
 
-libname workx "d:/wpswrkx";
 libname workx sas7bdat "d:/wpswrkx";
 
 /*--- DOSE DATES ---*/
@@ -407,7 +406,117 @@ run;
 /* 1     1  20220104  20220105   18                                  |                                                    */
 /* 2     2  20220103  20220104   19                                  |                                                    */
 /**************************************************************************************************************************/
+
+/*
+| | ___   __ _
+| |/ _ \ / _` |
+| | (_) | (_| |
+|_|\___/ \__, |
+         |___/
+*/
+
+1                                          Altair SLC         09:40 Saturday, July 11, 2026
+
+NOTE: Copyright 2002-2025 World Programming, an Altair Company
+NOTE: Altair SLC 2026 (05.26.01.00.000758)
+      Licensed to Roger DeAngelis
+NOTE: This session is executing on the X64_WIN11PRO platform and is running in 64 bit mode
+
+NOTE: AUTOEXEC processing beginning; file is C:\wpsoto\autoexec.sas
  
+NOTE: AUTOEXEC processing completed
+
+1         options validvarname=v7;
+2         options set=RHOME "C:\Progra~1\R\R-4.5.2\bin\r";
+3         proc r;
+4         submit;
+5
+6         library(sqldf);
+7         load("d:/rda/rwork.rdata")
+8         ls()
+9
+10        cat("\n","protocol", protocol  ,"\n")
+11        cat("statplan", statplan  ,"\n")
+12        cat("date",     date      ,"\n")
+13        cat("closedate",closedate ,"\n")
+14
+15        want<-sqldf('
+16          select
+17             l.mouse        as mouse
+18            ,l.dose_date    as dose_date
+19            ,r.remission    as remission
+20            ,l.dose
+21          from
+22            master as l left join trans as r
+23          on
+24                     l.mouse     = r.mouse
+25                and  l.dose_date < r.remission
+26          group
+27            by r.mouse
+28          having
+29            (r.remission-l.dose_date)
+30               = min(r.remission-l.dose_date)
+31          ');
+32
+33        want;
+34
+35        endsubmit;
+NOTE: Using R version 4.5.2 (2025-10-31 ucrt) from C:\Program Files\R\R-4.5.2
+
+NOTE: Submitting statements to R:
+
+>
+> library(sqldf);
+Loading required package: gsubfn
+Loading required package: proto
+Loading required package: RSQLite
+Warning message:
+package 'RSQLite' was built under R version 4.5.3
+> load("d:/rda/rwork.rdata")
+> ls()
+>
+> cat("\n","protocol", protocol  ,"\n")
+> cat("statplan", statplan  ,"\n")
+> cat("date",     date      ,"\n")
+> cat("closedate",closedate ,"\n")
+>
+> want<-sqldf('
++   select
++      l.mouse        as mouse
++     ,l.dose_date    as dose_date
++     ,r.remission    as remission
++     ,l.dose
++   from
++     master as l left join trans as r
++   on
++              l.mouse     = r.mouse
++         and  l.dose_date < r.remission
++   group
++     by r.mouse
++   having
++     (r.remission-l.dose_date)
++        = min(r.remission-l.dose_date)
++   ');
+>
+> want;
+>
+
+NOTE: Processing of R statements complete
+
+36        import data=workx.want r=want;
+NOTE: Creating data set 'WORKX.want' from R data frame 'want'
+NOTE: Data set "WORKX.want" has 2 observation(s) and 4 variable(s)
+
+37        run;
+NOTE: Procedure r step took :
+      real time : 1.859
+      cpu time  : 0.031
+
+
+
+NOTE: Submitted statements took :
+      real time : 1.986
+      cpu time  : 0.140
 
 /*              _
   ___ _ __   __| |
@@ -416,3 +525,4 @@ run;
  \___|_| |_|\__,_|
 
 */
+
